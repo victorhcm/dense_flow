@@ -22,7 +22,7 @@ void calcDenseFlowPureGPU(std::string file_name, int bound, int type, int step, 
                       std::vector<std::vector<uchar> >& output_y,
                       std::vector<std::vector<uchar> >& output_img);
 
-void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int dev_id,
+void calcDenseWarpFlowGPU(std::string file_name, int bound, int type, int step, int dev_id,
                           vector<vector<uchar> >& output_x,
                           vector<vector<uchar> >& output_y);
 
