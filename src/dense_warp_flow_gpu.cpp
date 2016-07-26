@@ -9,9 +9,10 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/features2d/features2d.hpp"
 #include "opencv2/core/core.hpp"
-#include "opencv2/nonfree/nonfree.hpp"
-#include "opencv2/gpu/gpu.hpp"
-#include "opencv2/gpu/gpu.hpp"
+#include "opencv2/xfeatures2d.hpp"
+#include "opencv2/cudaarithm.hpp"
+#include "opencv2/cudaoptflow.hpp"
+#include "opencv2/cudacodec.hpp"
 
 #include <stdio.h>
 #include <iostream>
@@ -19,11 +20,12 @@
 #include "warp_flow.h"
 
 using namespace cv;
-using namespace cv::gpu;
+using namespace cv::cuda;
+using namespace std;
 
 void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int dev_id,
-					  vector<vector<uchar> >& output_x,
-					  vector<vector<uchar> >& output_y){
+					  std::vector<std::vector<uchar> >& output_x,
+					  std::vector<std::vector<uchar> >& output_y){
 	VideoCapture video_stream(file_name);
 	CHECK(video_stream.isOpened())<<"Cannot open video stream \""
 								  <<file_name
