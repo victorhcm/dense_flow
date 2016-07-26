@@ -116,7 +116,7 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 			if(pts_all.size() > 50) {
 				std::vector<unsigned char> match_mask;
 				Mat temp = findHomography(prev_pts_all, pts_all, RANSAC, 1, match_mask);
-				if(countNonZero(Mat(match_mask)) > 25)
+				if(cv::countNonZero(Mat(match_mask)) > 25)
 					H = temp;
 			}
 
