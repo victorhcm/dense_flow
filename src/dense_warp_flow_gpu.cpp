@@ -48,11 +48,11 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 	Mat flow_x, flow_y;
 
 	GpuMat d_frame_0, d_frame_1;
-	GpuMat d_flow_x, d_flow_y;
+    GpuMat d_flow;
 
-	FarnebackOpticalFlow alg_farn;
-	OpticalFlowDual_TVL1_GPU alg_tvl1;
-	BroxOpticalFlow alg_brox(0.197f, 50.0f, 0.8f, 10, 77, 10);
+	cv::Ptr<cuda::FarnebackOpticalFlow> alg_farn = cuda::FarnebackOpticalFlow::create();
+	cv::Ptr<cuda::OpticalFlowDual_TVL1> alg_tvl1 = cuda::OpticalFlowDual_TVL1::create();
+	cv::Ptr<cuda::BroxOpticalFlow> alg_brox = cuda::BroxOpticalFlow::create(0.197f, 50.0f, 0.8f, 10, 77, 10);
 
 	bool initialized = false;
 	int cnt = 0;
@@ -86,29 +86,30 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 
 			switch(type){
 				case 0: {
-					alg_farn(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
+					alg_farn->calc(d_frame_0, d_frame_1, d_flow);
 					break;
 				}
 				case 1: {
-					alg_tvl1(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
+					alg_tvl1->calc(d_frame_0, d_frame_1, d_flow);
 					break;
 				}
 				case 2: {
 					GpuMat d_buf_0, d_buf_1;
 					d_frame_0.convertTo(d_buf_0, CV_32F, 1.0 / 255.0);
 					d_frame_1.convertTo(d_buf_1, CV_32F, 1.0 / 255.0);
-					alg_brox(d_buf_0, d_buf_1, d_flow_x, d_flow_y);
+					alg_brox->calc(d_buf_0, d_buf_1, d_flow);
 					break;
 				}
 				default:
 					LOG(ERROR)<<"Unknown optical method: "<<type;
 			}
 
-
+            GpuMat planes[2];
+            cuda::split(d_flow, planes);
 
 			//get back flow map
-			d_flow_x.download(flow_x);
-			d_flow_y.download(flow_y);
+            Mat flow_x(planes[0]);
+            Mat flow_y(planes[1]);
 
 			// warp to reduce holistic motion
 			detector_surf->detect(capture_gray, kpts_surf, human_mask);
@@ -134,18 +135,18 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 
 			switch(type){
 				case 0: {
-					alg_farn(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
+					alg_farn->calc(d_frame_0, d_frame_1, d_flow);
 					break;
 				}
 				case 1: {
-					alg_tvl1(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
+					alg_tvl1->calc(d_frame_0, d_frame_1, d_flow);
 					break;
 				}
 				case 2: {
 					GpuMat d_buf_0, d_buf_1;
 					d_frame_0.convertTo(d_buf_0, CV_32F, 1.0 / 255.0);
 					d_frame_1.convertTo(d_buf_1, CV_32F, 1.0 / 255.0);
-					alg_brox(d_buf_0, d_buf_1, d_flow_x, d_flow_y);
+					alg_brox->calc(d_buf_0, d_buf_1, d_flow);
 					break;
 				}
 				default:
@@ -153,10 +154,10 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 			}
 
 
-
 			//get back flow map
-			d_flow_x.download(flow_x);
-			d_flow_y.download(flow_y);
+            cuda::split(d_flow, planes);
+            planes[0].copyTo(flow_x);
+            planes[1].copyTo(flow_y);
 
 			vector<uchar> str_x, str_y;
 			encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
