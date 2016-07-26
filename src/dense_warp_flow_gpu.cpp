@@ -31,8 +31,12 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 								  <<file_name
 								  <<"\" for optical flow extraction.";
 
-	SurfFeatureDetector detector_surf(200);
-	SurfDescriptorExtractor extractor_surf(true, true);
+    // OpenCV 3.1.0 SURF interface
+    //
+    // source: http://stackoverflow.com/a/27533437/957997 
+    //  http://stackoverflow.com/questions/27533203/how-do-i-use-sift-in-opencv-3-0-with-c
+    cv::Ptr<Feature2D> detector_surf = xfeatures2d::SurfFeatureDetector::create(200);
+    cv::Ptr<Feature2D> extractor_surf = xfeatures2d::SurfDescriptorExtractor::create(true, true);
 	std::vector<Point2f> prev_pts_flow, pts_flow;
 	std::vector<Point2f> prev_pts_surf, pts_surf;
 	std::vector<Point2f> prev_pts_all, pts_all;
@@ -65,8 +69,8 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 
 			//detect key points
 			human_mask = Mat::ones(capture_frame.size(), CV_8UC1);
-			detector_surf.detect(prev_gray, prev_kpts_surf, human_mask);
-			extractor_surf.compute(prev_gray, prev_kpts_surf, prev_desc_surf);
+			detector_surf->detect(prev_gray, prev_kpts_surf, human_mask);
+			extractor_surf->compute(prev_gray, prev_kpts_surf, prev_desc_surf);
 
 			initialized = true;
 			for(int s = 0; s < step; ++s){
@@ -107,8 +111,8 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 			d_flow_y.download(flow_y);
 
 			// warp to reduce holistic motion
-			detector_surf.detect(capture_gray, kpts_surf, human_mask);
-			extractor_surf.compute(capture_gray, kpts_surf, desc_surf);
+			detector_surf->detect(capture_gray, kpts_surf, human_mask);
+			extractor_surf->compute(capture_gray, kpts_surf, desc_surf);
 			ComputeMatch(prev_kpts_surf, kpts_surf, prev_desc_surf, desc_surf, prev_pts_surf, pts_surf);
 			MatchFromFlow_copy(capture_gray, flow_x, flow_y, prev_pts_flow, pts_flow, human_mask);
 			MergeMatch(prev_pts_flow, pts_flow, prev_pts_surf, pts_surf, prev_pts_all, pts_all);
