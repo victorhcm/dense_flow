@@ -69,8 +69,9 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 
 			//detect key points
 			human_mask = Mat::ones(capture_frame.size(), CV_8UC1);
-			detector_surf->detect(prev_gray, prev_kpts_surf, human_mask);
+			detector_surf->detect(prev_gray, prev_kpts_surf, human_mask); 
 			extractor_surf->compute(prev_gray, prev_kpts_surf, prev_desc_surf);
+            // TODO! check detector_surf->detectAndCompute()
 
 			initialized = true;
 			for(int s = 0; s < step; ++s){
