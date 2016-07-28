@@ -157,8 +157,8 @@ void calcDenseWarpFlowGPU(string file_name, int bound, int type, int step, int d
 
 			//get back flow map
             cuda::split(d_flow, planes);
-            planes[0].copyTo(flow_x);
-            planes[1].copyTo(flow_y);
+            planes[0].download(flow_x);
+            planes[1].download(flow_y);
 
 			vector<uchar> str_x, str_y;
 			encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);

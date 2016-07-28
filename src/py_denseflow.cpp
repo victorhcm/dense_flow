@@ -64,8 +64,8 @@ public:
 
             GpuMat planes[2];
             cuda::split(d_flow, planes);
-            planes[0].copyTo(flow_x);
-            planes[1].copyTo(flow_y);
+            planes[0].download(flow_x);
+            planes[1].download(flow_y);
 
             std::vector<uchar> str_x, str_y;
 
@@ -128,8 +128,8 @@ public:
 
             GpuMat planes[2];
             cuda::split(d_flow, planes);
-            planes[0].copyTo(flow_x);
-            planes[1].copyTo(flow_y);
+            planes[0].download(flow_x);
+            planes[1].download(flow_y);
 
             // warp to reduce holistic motion
             detector_surf->detect(next_gray, kpts_surf, human_mask);
@@ -155,8 +155,8 @@ public:
             alg_tvl1->calc(d_frame_0, d_frame_1, d_flow);
 
             cuda::split(d_flow, planes);
-            planes[0].copyTo(flow_x);
-            planes[1].copyTo(flow_y);
+            planes[0].download(flow_x);
+            planes[1].download(flow_y);
 
             std::vector<uchar> str_x, str_y;
 
