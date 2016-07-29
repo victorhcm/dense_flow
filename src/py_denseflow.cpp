@@ -30,6 +30,7 @@ class TVL1FlowExtractor{
 public:
 
     TVL1FlowExtractor(int bound){
+        alg_tvl1 = cuda::OpticalFlowDual_TVL1::create();
         bound_ = bound;
     }
 
@@ -94,6 +95,7 @@ class TVL1WarpFlowExtractor {
 public:
 
     TVL1WarpFlowExtractor(int bound) {
+        alg_tvl1 = cuda::OpticalFlowDual_TVL1::create();
         detector_surf = xfeatures2d::SurfFeatureDetector::create(200);
         extractor_surf = xfeatures2d::SurfDescriptorExtractor::create(true, true);
         bound_ = bound;
