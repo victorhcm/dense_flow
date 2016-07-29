@@ -3,7 +3,8 @@ import sys
 
 sys.path.append('build/')
 
-from libpydenseflow import TVL1FlowExtractor
+import os
+from libpydenseflow import TVL1FlowExtractor, TVL1WarpFlowExtractor
 import numpy as np
 
 class FlowExtractor(object):
@@ -35,23 +36,37 @@ class FlowExtractor(object):
 
         return ret
 
+def save_optical_flow(output_folder, flow_frames):
+    try:
+        os.mkdir(output_folder)
+    except OSError:
+        pass
+    nframes = len(flow_frames) / 2
+    for i in xrange(nframes):
+        out_x = '{0}/x_{1:04d}.jpg'.format(output_folder, i+1)
+        out_y = '{0}/y_{1:04d}.jpg'.format(output_folder, i+1)
+        cv2.imwrite(out_x, flow_frames[2*i])
+        cv2.imwrite(out_y, flow_frames[2*i+1])
 
 if __name__ == "__main__":
+    if len(sys.argv) < 3: # TODO! argparse
+        print ("Missing arguments.\n"
+               "Usage: \n"
+               "    python tools/action_flow.py <INPUT VIDEO> <OUTPUT FOLDER>")
+        sys.exit(-1)
+
+    input_video = sys.argv[1]
+    output_folder = sys.argv[2]
+
     import cv2
-    im1 = cv2.imread('./gpu/img_00001.jpg')
-    im2 = cv2.imread('./gpu/img_00002.jpg')
-
-    f = FlowExtractor(0)
-    flow_frames = f.extract_flow([im1, im2])
-    from pylab import *
-
-    plt.figure()
-    plt.imshow(flow_frames[0])
-    plt.figure()
-    plt.imshow(flow_frames[1])
-    plt.figure()
-    plt.imshow(im1)
-    plt.show()
-
-    print flow_frames
+    if os.path.exists(input_video):
+        frame_list = []
+        cap = cv2.VideoCapture(input_video)
+        ret, frame = cap.read()
+        while ret:
+            frame_list.append(frame)
+            ret, frame = cap.read()
+        f = FlowExtractor(dev_id=0)
+        flow_frames = f.extract_flow(frame_list)
+        save_optical_flow(output_folder, flow_frames)
 
